@@ -1,3 +1,3 @@
-# search_movie_app
+# search movie app
 
 with naver api
