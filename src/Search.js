@@ -1,43 +1,53 @@
 import React from "react"
-import axios from "axios"
+import Movie from "./Movie"
+// import axios from "axios"
 class Search extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      username: null,
+    }
+  }
+
   state = {
     isLoadind: true,
     movies: [],
     value: "%EC%95%84%EC%9D%B4%EC%96%B8%EB%A7%A8",
   }
-
-  _getSearchMovie = async () => {
-    const ID_KEY = "65ZmRcZsZzv91e_ZBrjT"
-    const SECRET_KEY = "uSA8qys_Dq"
-    const search = this.state.value
-
-    try {
-      if (search === "") {
-        this.setState({ movies: [], isLoading: false })
-      } else {
-        const {
-          data: { items },
-        } = await axios.get("https://openapi.naver.com/v1/search/movie.json", {
-          params: {
-            query: search,
-            display: 10,
-          },
-          headers: {
-            "X-Naver-Client-Id": ID_KEY,
-            "X-Naver-Client-Secret": SECRET_KEY,
-          },
-        })
-
-        this.setState({ movies: items, isLoading: false })
-      }
-    } catch (error) {
-      console.log(error)
-    }
+  componentDidMount() {
+    this._getMovies()
   }
 
-  componentDidMount() {
-    this._getSearchMovie()
+  _renderMovies = () => {
+    const movies = this.state.movies.map((movie) => {
+      return (
+        <Movie
+          title={movie.title}
+          link={movie.link}
+          image={movie.image}
+          subtitle={movie.subtitle}
+          pubDate={movie.pubDate}
+          director={movie.director}
+          actor={movie.actor}
+          userRating={movie.userRating}
+        />
+      )
+    })
+    return movies
+  }
+
+  _getMovies = async () => {
+    const movies = await this._callApi()
+    this.setState({
+      movies,
+    })
+  }
+
+  _callApi = () => {
+    return fetch("/api")
+      .then((res) => res.json())
+      .then((data) => data.items)
+      .catch((err) => console.log(err))
   }
 
   handleChange = (e) => {
@@ -46,13 +56,15 @@ class Search extends React.Component {
 
   handleSubmit = (e) => {
     e.preventDefault()
-    this._getSearchMovie()
   }
 
   render() {
-    const { moves, isLoading } = this.state
-
-    return <div>{isLoading ? <div>Loading.. </div> : <div>Complete</div>}</div>
+    const { movies } = this.state
+    return (
+      <div className={movies ? "App" : "App--loading"}>
+        {movies ? this._renderMovies() : "Loading"}
+      </div>
+    )
   }
 }
 
